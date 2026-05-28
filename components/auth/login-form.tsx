@@ -29,7 +29,8 @@ export function LoginForm({ searchParams }: { searchParams: Promise<{ next?: str
       toast.error(error.message);
       return;
     }
-    router.push(params.next ?? "/admin");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    router.push((params.next ?? "/admin") as any);
     router.refresh();
   }
 

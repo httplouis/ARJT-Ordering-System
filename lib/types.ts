@@ -4,6 +4,7 @@ export type CategorySlug =
   | "meals"
   | "halo-halo"
   | "rice-meals"
+  | "shakes-soda"
   | "school-essentials";
 
 export type OrderStatus =
