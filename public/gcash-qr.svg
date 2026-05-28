@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <rect width="256" height="256" fill="#fff"/>
+  <rect x="18" y="18" width="64" height="64" fill="#111"/>
+  <rect x="30" y="30" width="40" height="40" fill="#fff"/>
+  <rect x="42" y="42" width="16" height="16" fill="#111"/>
+  <rect x="174" y="18" width="64" height="64" fill="#111"/>
+  <rect x="186" y="30" width="40" height="40" fill="#fff"/>
+  <rect x="198" y="42" width="16" height="16" fill="#111"/>
+  <rect x="18" y="174" width="64" height="64" fill="#111"/>
+  <rect x="30" y="186" width="40" height="40" fill="#fff"/>
+  <rect x="42" y="198" width="16" height="16" fill="#111"/>
+  <path fill="#111" d="M101 18h18v18h-18zm36 0h18v36h-18zM101 54h54v18h-54zm72 54h18v18h-18zm36 0h29v18h-29zm-108 0h54v18h-54zm0 36h18v18h-18zm36 0h54v18h-54zm72 0h18v54h-18zm-72 36h18v58h-18zm36 18h18v18h-18zm36 18h29v22h-29zM101 216h18v22h-18z"/>
+  <text x="128" y="134" text-anchor="middle" font-family="Arial" font-size="15" font-weight="700" fill="#0a66c2">GCash</text>
+</svg>

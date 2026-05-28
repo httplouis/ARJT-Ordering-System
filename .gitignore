@@ -1,0 +1,10 @@
+node_modules
+.next
+.env
+.env.local
+*.swp
+*.swo
+.DS_Store
+dist
+build
+pnpm-lock.yaml

@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 230 15% 12%;
+  --card: 0 0% 100%;
+  --card-foreground: 230 15% 12%;
+  --primary: 350 72% 34%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 40 88% 92%;
+  --secondary-foreground: 350 72% 24%;
+  --muted: 350 20% 96%;
+  --muted-foreground: 230 8% 42%;
+  --accent: 9 92% 61%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 350 18% 88%;
+  --input: 350 18% 88%;
+  --ring: 350 72% 34%;
+  --radius: 1rem;
+}
+
+.dark {
+  --background: 230 18% 8%;
+  --foreground: 0 0% 98%;
+  --card: 230 16% 11%;
+  --card-foreground: 0 0% 98%;
+  --primary: 350 78% 55%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 350 18% 18%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 230 12% 18%;
+  --muted-foreground: 230 8% 70%;
+  --accent: 18 94% 62%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 70% 50%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 230 12% 22%;
+  --input: 230 12% 22%;
+  --ring: 350 78% 55%;
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}

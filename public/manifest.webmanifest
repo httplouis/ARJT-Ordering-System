@@ -1,0 +1,23 @@
+{
+  "name": "ARJT Store",
+  "short_name": "ARJT",
+  "description": "Order ahead from ARJT Store and skip the line.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#9f1239",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    { "name": "Order Now", "url": "/", "description": "Open the ARJT Store menu" },
+    { "name": "Admin", "url": "/admin", "description": "Manage incoming orders" }
+  ]
+}
