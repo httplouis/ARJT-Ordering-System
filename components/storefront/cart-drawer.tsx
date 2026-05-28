@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Minus, Plus, Trash2, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -122,7 +123,7 @@ export function CartDrawer({ settings }: { settings: StoreSettings }) {
                   Send payment to <strong>{settings.gcash_name}</strong> · <strong>{settings.gcash_number}</strong>
                 </p>
                 <div className="mt-3 grid grid-cols-[96px_1fr] gap-3">
-                  <img src={settings.gcash_qr_url} alt="GCash QR" className="h-24 w-24 rounded-2xl bg-white p-2" />
+                  <Image src={settings.gcash_qr_url} alt="GCash QR" width={96} height={96} className="rounded-2xl bg-white p-2" />
                   <div className="space-y-2">
                     <Input placeholder="Reference number" {...form.register("gcash_reference")} />
                     <Input 

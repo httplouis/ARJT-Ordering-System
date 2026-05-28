@@ -4,10 +4,10 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 
 const links = [
-  { href: "/admin", label: "Overview", icon: BarChart3 },
-  { href: "/admin/orders", label: "Orders", icon: ReceiptText },
-  { href: "/admin/products", label: "Products", icon: Package },
-  { href: "/admin/settings", label: "Settings", icon: Settings }
+  { href: "/admin" as const, label: "Overview", icon: BarChart3 },
+  { href: "/admin/orders" as const, label: "Orders", icon: ReceiptText },
+  { href: "/admin/products" as const, label: "Products", icon: Package },
+  { href: "/admin/settings" as const, label: "Settings", icon: Settings }
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
