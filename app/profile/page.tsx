@@ -17,7 +17,7 @@ export default async function ProfilePage() {
 
   const { data: profile, error } = await supabase
     .from("users")
-    .select("full_name, role")
+    .select("full_name, contact_number, role")
     .eq("id", user.id)
     .single();
 
@@ -49,7 +49,15 @@ export default async function ProfilePage() {
           <div className="grid gap-4 rounded-3xl border border-muted p-6">
             <div className="grid gap-2 text-sm text-muted-foreground">
               <span className="font-semibold text-primary">Account details</span>
-              <ProfileForm fullName={profile.full_name} />
+              <ProfileForm fullName={profile.full_name} contactNumber={profile.contact_number} />
+              {!profile.contact_number ? (
+                <div className="rounded-3xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-900">
+                  <p className="font-semibold">Phone number required</p>
+                  <p className="mt-1 text-sm text-rose-800">
+                    Add your contact number here so the admin can reach you if your order cannot be fulfilled.
+                  </p>
+                </div>
+              ) : null}
 
               <div className="grid gap-1 rounded-2xl bg-muted/70 p-4">
                 <p className="font-medium">

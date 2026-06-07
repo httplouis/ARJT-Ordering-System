@@ -8,11 +8,13 @@ import { updateProfileAction } from "@/app/actions";
 
 interface ProfileFormProps {
   fullName: string;
+  contactNumber?: string | null;
 }
 
-export function ProfileForm({ fullName }: ProfileFormProps) {
+export function ProfileForm({ fullName, contactNumber }: ProfileFormProps) {
   const router = useRouter();
   const [name, setName] = useState(fullName);
+  const [phone, setPhone] = useState(contactNumber ?? "");
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
@@ -24,14 +26,14 @@ export function ProfileForm({ fullName }: ProfileFormProps) {
 
     startTransition(async () => {
       try {
-        const result = await updateProfileAction({ full_name: name });
+        const result = await updateProfileAction({ full_name: name, contact_number: phone });
 
         if (result?.success) {
-          setMessage("Name saved successfully.");
+          setMessage("Profile saved successfully.");
           router.refresh();
         } else {
           setIsError(true);
-          setMessage("Unable to save your name. Please try again.");
+          setMessage("Unable to save your profile. Please try again.");
         }
       } catch (error) {
         setIsError(true);
@@ -53,6 +55,16 @@ export function ProfileForm({ fullName }: ProfileFormProps) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="bg-background" 
+        />
+      </div>
+      <div className="grid gap-2">
+        <label htmlFor="contact_number" className="font-medium text-foreground">Contact number</label>
+        <Input
+          id="contact_number"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="09XXXXXXXXX"
+          className="bg-background"
         />
       </div>
       {message && (

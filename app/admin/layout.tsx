@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { LogoutButton } from "@/components/auth/logout-button";
 
 const links = [
-  { href: "/admin" as const, label: "Overview", icon: BarChart3 },
+  { href: "/admin" as const, label: "Analytics", icon: BarChart3 },
   { href: "/admin/orders" as const, label: "Orders", icon: ReceiptText },
   { href: "/admin/messages" as const, label: "Messages", icon: Mail },
   { href: "/admin/products" as const, label: "Products", icon: Package },

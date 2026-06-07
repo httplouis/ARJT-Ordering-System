@@ -37,6 +37,7 @@ export function statusTone(status: OrderStatus) {
     preparing: "bg-orange-100 text-orange-800 dark:bg-orange-500/15 dark:text-orange-200",
     ready_for_pickup: "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-200",
     out_for_delivery: "bg-indigo-100 text-indigo-800 dark:bg-indigo-500/15 dark:text-indigo-200",
+    out_of_stock: "bg-rose-100 text-rose-800 dark:bg-rose-500/15 dark:text-rose-200",
     completed: "bg-green-100 text-green-800 dark:bg-green-500/15 dark:text-green-200",
     cancelled: "bg-rose-100 text-rose-800 dark:bg-rose-500/15 dark:text-rose-200"
   };

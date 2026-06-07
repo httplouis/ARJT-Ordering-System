@@ -16,6 +16,7 @@ end $$;
 create table if not exists public.users (
   id uuid primary key references auth.users(id) on delete cascade,
   full_name text not null,
+  contact_number text not null default '',
   role text not null default 'customer' check (role in ('customer', 'admin')),
   created_at timestamptz not null default now()
 );
@@ -125,8 +126,8 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.users (id, full_name, role)
-  values (new.id, coalesce(new.user_metadata->>'full_name', new.email), 'customer');
+  insert into public.users (id, full_name, contact_number, role)
+  values (new.id, coalesce(new.user_metadata->>'full_name', new.email), '', 'customer');
   return new;
 end;
 $$;

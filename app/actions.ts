@@ -98,13 +98,24 @@ export async function createOrderAction(payload: unknown, cart: CartItem[]) {
     redirect(`/orders?orderId=demo-${queueNumber}`);
   }
 
+  const { data: profile } = await supabase
+    .from("users")
+    .select("full_name, contact_number")
+    .eq("id", user.id)
+    .single();
+
+  const contactNumber = profile?.contact_number?.trim() ?? "";
+  if (!contactNumber) {
+    throw new Error("Please add your contact number in your profile before placing an order.");
+  }
+
   const { data: order, error } = await supabase
     .from("orders")
     .insert({
       user_id: user.id,
       queue_number: queueNumber,
-      customer_name: input.customer_name || user.user_metadata?.full_name || user.email || "Customer",
-      contact_number: input.contact_number,
+      customer_name: input.customer_name || profile?.full_name || user.user_metadata?.full_name || user.email || "Customer",
+      contact_number: contactNumber,
       grade_section: input.grade_section,
       fulfillment_type: input.fulfillment_type,
       desired_time: desiredTime,
@@ -192,9 +203,15 @@ export async function updateOrderStatusAction(orderId: string, status: OrderStat
   }
 
   await supabase.from("orders").update({ status }).eq("id", orderId);
+
+  const notificationBody =
+    status === "cancelled"
+      ? `Order ${orderId} has been cancelled.`
+      : `Order ${orderId} is now ${status}`;
+
   await supabase.from("notifications").insert({
-    title: "Order updated",
-    body: `Order ${orderId} is now ${status}`,
+    title: status === "cancelled" ? "Order cancelled" : "Order updated",
+    body: notificationBody,
     type: "order_status",
     order_id: orderId
   });
@@ -270,7 +287,7 @@ export async function updateProfileAction(payload: unknown) {
 
   const { error } = await adminSupabase
     .from("users")
-    .update({ full_name: input.full_name })
+    .update({ full_name: input.full_name, contact_number: input.contact_number })
     .eq("id", userData.user.id);
 
   if (error) {

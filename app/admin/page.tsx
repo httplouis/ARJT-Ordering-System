@@ -1,5 +1,8 @@
-import { redirect } from "next/navigation";
+import { getAdminData } from "@/lib/data";
+import { AdminOverview } from "@/components/admin/admin-overview";
 
 export default async function AdminPage() {
-  redirect("/admin/orders");
+  const { analytics, orders, products, settings } = await getAdminData();
+
+  return <AdminOverview analytics={analytics} orders={orders} products={products} settings={settings} />;
 }

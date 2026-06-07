@@ -14,17 +14,20 @@ const steps: OrderStatus[] = ["pending", "preparing", "completed"];
 
 export function OrderTracker({ order: initialOrder }: { order: Order }) {
   const [order, setOrder] = useState(initialOrder);
+  const isCancelled = order.status === "cancelled" || order.status === "out_of_stock";
   const normalizedStatus = useMemo<OrderStatus>(() => {
     if (order.status === "completed") return "completed";
+    if (isCancelled) return "cancelled";
     if (["preparing", "ready_for_pickup", "out_for_delivery"].includes(order.status)) return "preparing";
     return "pending";
-  }, [order.status]);
+  }, [order.status, isCancelled]);
   const activeIndex = Math.max(0, steps.indexOf(normalizedStatus));
   const wait = useMemo(() => {
+    if (isCancelled) return "Cancelled";
     if (!order.estimated_ready_at) return "Calculating";
     const diff = Math.max(1, Math.ceil((new Date(order.estimated_ready_at).getTime() - Date.now()) / 60000));
     return `${diff} min`;
-  }, [order.estimated_ready_at]);
+  }, [order.estimated_ready_at, isCancelled]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -71,7 +74,13 @@ export function OrderTracker({ order: initialOrder }: { order: Order }) {
           <Clock className="h-9 w-9 text-primary" />
         </div>
         <div className="mt-6 space-y-4">
-          {steps.map((step, index) => {
+        {isCancelled ? (
+          <div className="rounded-3xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-900">
+            <p className="font-bold">Order cancelled</p>
+            <p className="mt-2">This order is no longer available and has been cancelled because it is out of stock.</p>
+          </div>
+        ) : (
+          steps.map((step, index) => {
             const active = index <= activeIndex;
             return (
               <div
@@ -96,8 +105,9 @@ export function OrderTracker({ order: initialOrder }: { order: Order }) {
                 </div>
               </div>
             );
-          })}
-        </div>
+          })
+        )}
+      </div>
       </div>
 
       <div className="rounded-[2rem] border bg-card p-5 shadow-soft">

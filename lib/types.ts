@@ -13,6 +13,7 @@ export type OrderStatus =
   | "preparing"
   | "ready_for_pickup"
   | "out_for_delivery"
+  | "out_of_stock"
   | "completed"
   | "cancelled";
 

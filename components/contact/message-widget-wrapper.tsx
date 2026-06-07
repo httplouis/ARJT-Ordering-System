@@ -8,8 +8,8 @@ const MessageWidget = dynamic(() => import("./message-widget"), { ssr: false });
 export default function MessageWidgetWrapper() {
   const pathname = usePathname();
 
-  // Hide widget on admin pages and on the public orders page
-  if (pathname?.startsWith("/admin") || pathname?.startsWith("/orders")) {
+  // Hide widget on admin, login, and public orders pages
+  if (pathname?.startsWith("/admin") || pathname?.startsWith("/orders") || pathname === "/login") {
     return null;
   }
 

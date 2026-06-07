@@ -2,7 +2,6 @@ import { z } from "zod";
 
 export const checkoutSchema = z.object({
   customer_name: z.string().min(2, "Enter your name"),
-  contact_number: z.string().optional(),
   grade_section: z.string().optional(),
   fulfillment_type: z.enum(["pickup", "delivery"]),
   desired_date: z.string().min(1, "Choose a date"),
@@ -43,7 +42,8 @@ export const settingsSchema = z.object({
 });
 
 export const profileSchema = z.object({
-  full_name: z.string().min(2, "Enter your name")
+  full_name: z.string().min(2, "Enter your name"),
+  contact_number: z.string().min(10, "Enter your contact number")
 });
 
 export type CheckoutInput = z.infer<typeof checkoutSchema>;

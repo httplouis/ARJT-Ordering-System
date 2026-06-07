@@ -43,7 +43,8 @@ export function LiveOrders({ initialOrders }: { initialOrders: Order[] }) {
   );
 
   const newOrders = filtered.filter((o) => o.status === "pending");
-  const otherOrders = filtered.filter((o) => o.status !== "pending");
+  const inProgressOrders = filtered.filter((o) => ["confirmed", "preparing", "ready_for_pickup", "out_for_delivery"].includes(o.status));
+  const historyOrders = filtered.filter((o) => ["completed", "cancelled", "out_of_stock"].includes(o.status));
 
   useEffect(() => {
     const supabase = createClient();
@@ -115,21 +116,46 @@ export function LiveOrders({ initialOrders }: { initialOrders: Order[] }) {
                 order={order}
                 isNew
                 onDelete={() => setOrders((current) => current.filter((item) => item.id !== order.id))}
+                onStatusUpdate={(orderId, status) =>
+                  setOrders((current) => current.map((item) => (item.id === orderId ? { ...item, status } : item)))
+                }
               />
             ))}
           </div>
         )}
 
-        {/* Other Orders Section */}
-        {otherOrders.length > 0 && (
-          <div className="space-y-3">
-            {newOrders.length > 0 && <p className="text-xs font-semibold text-muted-foreground mt-4">Other Orders</p>}
-            {otherOrders.map((order) => (
+        {/* In Progress Orders Section */}
+        <div className="space-y-3">
+          {newOrders.length > 0 && <p className="text-xs font-semibold text-muted-foreground mt-4">Other Orders</p>}
+          {inProgressOrders.length > 0 ? (
+            inProgressOrders.map((order) => (
               <OrderCard
                 key={order.id}
                 order={order}
                 isNew={false}
                 onDelete={() => setOrders((current) => current.filter((item) => item.id !== order.id))}
+                onStatusUpdate={(orderId, status) =>
+                  setOrders((current) => current.map((item) => (item.id === orderId ? { ...item, status } : item)))
+                }
+              />
+            ))
+          ) : (
+            <p className="text-xs text-muted-foreground">No in-progress orders.</p>
+          )}
+        </div>
+
+        {historyOrders.length > 0 && (
+          <div className="space-y-3">
+            <p className="text-xs font-semibold text-muted-foreground mt-4">Order history</p>
+            {historyOrders.map((order) => (
+              <OrderCard
+                key={order.id}
+                order={order}
+                isNew={false}
+                onDelete={() => setOrders((current) => current.filter((item) => item.id !== order.id))}
+                onStatusUpdate={(orderId, status) =>
+                  setOrders((current) => current.map((item) => (item.id === orderId ? { ...item, status } : item)))
+                }
               />
             ))}
           </div>
@@ -149,15 +175,18 @@ export function LiveOrders({ initialOrders }: { initialOrders: Order[] }) {
 function OrderCard({
   order,
   isNew,
-  onDelete
+  onDelete,
+  onStatusUpdate
 }: {
   order: Order;
   isNew: boolean;
   onDelete: () => void;
+  onStatusUpdate: (orderId: string, status: OrderStatus) => void;
 }) {
   const [showDetails, setShowDetails] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -171,6 +200,19 @@ function OrderCard({
     } finally {
       setIsDeleting(false);
       setConfirmOpen(false);
+    }
+  };
+
+  const handleStatusChange = async (status: OrderStatus, successMessage: string) => {
+    setIsUpdating(true);
+    try {
+      await updateOrderStatusAction(order.id, status);
+      onStatusUpdate(order.id, status);
+      toast.success(successMessage);
+    } catch (error) {
+      toast.error("Unable to update order status");
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -188,17 +230,34 @@ function OrderCard({
             <p className="text-xs text-muted-foreground mt-1 truncate">{formatDateTime(order.created_at)}</p>
           </div>
 
-          {order.status === "pending" ? (
-            <Button
-              size="sm"
-              onClick={async () => {
-                await updateOrderStatusAction(order.id, "preparing");
-              }}
-              className="text-xs self-start sm:self-center"
-            >
-              Start preparing
-            </Button>
-          ) : null}
+          <div className="flex flex-wrap gap-2">
+            {order.status === "pending" ? (
+              <Button
+                size="sm"
+                onClick={async () => {
+                  await handleStatusChange("preparing", "Order moved to preparing");
+                }}
+                className="text-xs self-start sm:self-center"
+                disabled={isUpdating}
+              >
+                Start preparing
+              </Button>
+            ) : null}
+
+            {order.status !== "completed" && order.status !== "cancelled" ? (
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={async () => {
+                  await handleStatusChange("cancelled", "Order cancelled");
+                }}
+                className="text-xs self-start sm:self-center"
+                disabled={isUpdating}
+              >
+                Cancel order
+              </Button>
+            ) : null}
+          </div>
         </div>
 
         <div className="rounded-3xl border border-muted/30 bg-muted/50 p-3 text-sm">
@@ -305,9 +364,10 @@ function OrderCard({
               <Button
                 size="sm"
                 onClick={async () => {
-                  await updateOrderStatusAction(order.id, "preparing");
+                  await handleStatusChange("preparing", "Order moved to preparing");
                 }}
                 className="text-xs"
+                disabled={isUpdating}
               >
                 Start preparing
               </Button>
@@ -315,15 +375,30 @@ function OrderCard({
               <Button
                 size="sm"
                 onClick={async () => {
-                  await updateOrderStatusAction(order.id, "completed");
+                  await handleStatusChange("completed", "Order marked complete");
                 }}
                 className="text-xs"
+                disabled={isUpdating}
               >
                 Mark complete
               </Button>
             ) : (
               <Badge className={statusTone(order.status)}>{statusLabel(order.status)}</Badge>
             )}
+
+            {order.status !== "completed" && order.status !== "cancelled" ? (
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={async () => {
+                  await handleStatusChange("cancelled", "Order cancelled");
+                }}
+                className="text-xs"
+                disabled={isUpdating}
+              >
+                Cancel order
+              </Button>
+            ) : null}
 
             <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
               <DialogTrigger asChild>

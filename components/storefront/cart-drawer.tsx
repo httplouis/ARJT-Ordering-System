@@ -26,6 +26,7 @@ export function CartDrawer({ settings }: { settings: StoreSettings }) {
   const [screenshotName, setScreenshotName] = useState<string>("");
   const [successOpen, setSuccessOpen] = useState(false);
   const [recentOrderId, setRecentOrderId] = useState<string | null>(null);
+  const [profileContactNumber, setProfileContactNumber] = useState<string | null>(null);
 
   const form = useForm<CheckoutInput>({
     resolver: zodResolver(checkoutSchema),
@@ -34,7 +35,6 @@ export function CartDrawer({ settings }: { settings: StoreSettings }) {
       desired_date: today,
       desired_time: "11:30",
       customer_name: "",
-      contact_number: "",
       grade_section: "",
       notes: "",
       gcash_reference: "",
@@ -51,12 +51,17 @@ export function CartDrawer({ settings }: { settings: StoreSettings }) {
       const user = data.user;
       if (!user) return;
 
-      const { data: profile } = await client.from("users").select("full_name").eq("id", user.id).single();
-      const defaultName = profile?.full_name ?? user.user_metadata?.full_name ?? user.email ?? "";
-      const currentName = form.getValues("customer_name");
-      if (!currentName && defaultName) {
-        form.setValue("customer_name", defaultName);
-      }
+      const { data: profile } = await client
+      .from("users")
+      .select("full_name, contact_number")
+      .eq("id", user.id)
+      .single();
+    const defaultName = profile?.full_name ?? user.user_metadata?.full_name ?? user.email ?? "";
+    const currentName = form.getValues("customer_name");
+    if (!currentName && defaultName) {
+      form.setValue("customer_name", defaultName);
+    }
+    setProfileContactNumber(profile?.contact_number ?? "");
     }
 
     setAccountName(supabase);
@@ -169,11 +174,18 @@ export function CartDrawer({ settings }: { settings: StoreSettings }) {
               className="space-y-4"
               onSubmit={form.handleSubmit(handleSubmit)}
             >
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3">
                 <Input placeholder="Name" {...form.register("customer_name")} />
-                <Input placeholder="Contact number optional" {...form.register("contact_number")} />
               </div>
               <Input placeholder="Grade/Section optional" {...form.register("grade_section")} />
+              {profileContactNumber === "" ? (
+                <div className="rounded-3xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-900">
+                  <p className="font-semibold">Contact number required</p>
+                  <p className="mt-1 text-sm text-rose-800">
+                    Please add your phone number in your profile before placing an order.
+                  </p>
+                </div>
+              ) : null}
               <div className="grid grid-cols-2 gap-2">
                 <Button
                   type="button"
@@ -257,7 +269,7 @@ export function CartDrawer({ settings }: { settings: StoreSettings }) {
                 </div>
               </div>
 
-              <Button disabled={pending} className="h-13 w-full text-base">
+              <Button disabled={pending || profileContactNumber == null || profileContactNumber === ""} className="h-13 w-full text-base">
                 {pending ? "Submitting..." : "Place Order"}
               </Button>
             </form>

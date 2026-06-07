@@ -89,15 +89,31 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
           <div className="space-y-6">
             {/* Active orders */}
             {(() => {
-              const activeOrders = orders.filter((o) => o.status !== "completed");
+              const activeOrders = orders.filter((o) => !["completed", "cancelled", "out_of_stock"].includes(o.status));
               if (!activeOrders.length) return null;
               return (
                 <section className="space-y-4">
                   <h2 className="text-xl font-bold">Active orders</h2>
                   <div className="space-y-3">
-                        {activeOrders.map((order) => (
-                          <CompactOrderCard key={order.id} order={order} />
-                        ))}
+                    {activeOrders.map((order) => (
+                      <CompactOrderCard key={order.id} order={order} />
+                    ))}
+                  </div>
+                </section>
+              );
+            })()}
+
+            {(() => {
+              const cancelledOrders = orders.filter((o) => ["cancelled", "out_of_stock"].includes(o.status));
+              if (!cancelledOrders.length) return null;
+              return (
+                <section className="space-y-4">
+                  <h2 className="text-xl font-bold">Cancelled orders</h2>
+                  <p className="text-sm text-muted-foreground">Orders that were cancelled.</p>
+                  <div className="space-y-3">
+                    {cancelledOrders.map((order) => (
+                      <CompactOrderCard key={order.id} order={order} isHistory />
+                    ))}
                   </div>
                 </section>
               );
