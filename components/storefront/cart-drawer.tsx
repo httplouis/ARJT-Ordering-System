@@ -46,12 +46,12 @@ export function CartDrawer({ settings }: { settings: StoreSettings }) {
     const supabase = createClient();
     if (!supabase) return;
 
-    async function setAccountName() {
-      const { data } = await supabase.auth.getUser();
+    async function setAccountName(client: NonNullable<ReturnType<typeof createClient>>) {
+      const { data } = await client.auth.getUser();
       const user = data.user;
       if (!user) return;
 
-      const { data: profile } = await supabase.from("users").select("full_name").eq("id", user.id).single();
+      const { data: profile } = await client.from("users").select("full_name").eq("id", user.id).single();
       const defaultName = profile?.full_name ?? user.user_metadata?.full_name ?? user.email ?? "";
       const currentName = form.getValues("customer_name");
       if (!currentName && defaultName) {
@@ -59,7 +59,7 @@ export function CartDrawer({ settings }: { settings: StoreSettings }) {
       }
     }
 
-    setAccountName();
+    setAccountName(supabase);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const fulfillment = form.watch("fulfillment_type");
