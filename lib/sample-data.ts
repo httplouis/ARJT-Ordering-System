@@ -13,8 +13,8 @@ export const settings: StoreSettings = {
   closing_time: "18:30",
   delivery_fee: 10,
   gcash_name: "ARJT Store",
-  gcash_number: "0917 123 4567",
-  gcash_qr_url: "/gcash-qr.svg",
+  gcash_number: "0920 530 5090",
+  gcash_qr_url: "/gcash-qr.jpg",
   default_prep_minutes: 12,
   banner_url:
     "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=1400&q=80"

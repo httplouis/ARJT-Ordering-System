@@ -3,8 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Clock, Home, QrCode, Search, ShoppingBag, Sparkles, UserCog } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Clock, ClipboardList, Home, QrCode, Search, ShoppingBag, Sparkles, User } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useTheme } from "next-themes";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,15 +19,23 @@ import { useCart } from "@/lib/store/cart";
 export function Storefront({
   categories,
   products,
-  settings
+  settings,
+  user
 }: {
   categories: Category[];
   products: Product[];
   settings: StoreSettings;
+  user: { full_name: string; role: string; email?: string };
 }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
+  const [mounted, setMounted] = useState(false);
+  const { theme, resolvedTheme } = useTheme();
   const cart = useCart();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
@@ -54,30 +63,38 @@ export function Storefront({
           className="object-cover opacity-25 mix-blend-screen"
         />
         <div className="relative mx-auto max-w-6xl px-4 pb-4 pt-3 sm:pb-7 sm:pt-4">
-          <nav className="flex items-center justify-between">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white font-black text-primary shadow-soft sm:h-11 sm:w-11">
-                A
+          <nav className="relative flex items-center justify-between pb-4 sm:pb-6">
+            <Link href="/" className="flex items-center gap-3">
+              <Image
+                src={mounted && (resolvedTheme === "dark" || theme === "dark") ? "/ARJT_LOGO_nobg.png" : "/ARJT_LOGO_WHITE.png"}
+                alt="Store logo"
+                width={88}
+                height={88}
+                className="object-contain"
+              />
+            </Link>
+
+            <div className="flex flex-wrap items-center justify-end gap-2 text-right">
+              <div className="text-xs opacity-80">
+                <p>Welcome back, {user.full_name ?? user.email}</p>
+                <p className="font-black capitalize">{user.role === "admin" ? "Admin" : "Customer"}</p>
               </div>
-              <div className="min-w-0">
-                <p className="hidden text-sm font-semibold opacity-85 sm:block">School-front ordering</p>
-                <h1 className="truncate text-lg font-black sm:text-xl">{settings.store_name}</h1>
-              </div>
-            </div>
-            <div className="flex items-center gap-1">
-              <Button asChild size="icon" variant="ghost" className="h-10 w-10 text-white hover:bg-white/15 sm:h-11 sm:w-11">
-                <Link href="/admin" aria-label="Admin dashboard">
-                  <UserCog className="h-5 w-5" />
+              <ThemeToggle className="text-white hover:bg-white/15" />
+              <Button asChild size="sm" variant="secondary" className="hidden sm:inline-flex items-center gap-2">
+                <Link href={"/orders" as any}>Your orders</Link>
+              </Button>
+              <Button asChild size="sm" variant="secondary" className="hidden sm:inline-flex items-center gap-2">
+                <Link href={{ pathname: "/profile" }}>
+                  <User className="h-4 w-4" /> Profile
                 </Link>
               </Button>
-              <ThemeToggle />
             </div>
           </nav>
 
           <motion.div
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
-            className="grid gap-4 pb-4 pt-4 sm:gap-6 sm:pb-8 sm:pt-8 lg:grid-cols-[1.15fr_.85fr] lg:items-end"
+            className="grid gap-4 pb-4 pt-2 sm:gap-6 sm:pb-6 sm:pt-4 lg:grid-cols-[1.15fr_.85fr] lg:items-end"
           >
             <div>
               <Badge className="bg-white/18 text-xs text-white backdrop-blur sm:text-sm">
@@ -115,37 +132,39 @@ export function Storefront({
         </div>
       </section>
 
-      <section className="sticky top-0 z-20 mx-auto max-w-6xl px-4 -mt-6 sm:-mt-8 pb-2 sm:pb-0">
-        <div className="rounded-[2rem] border bg-card p-3 shadow-soft sm:p-4">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-4 top-3 h-4 w-4 text-muted-foreground sm:top-3.5" />
-            <Input
-              className="pl-11 text-base h-11 sm:h-10"
-              placeholder="Search food, drinks..."
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-            />
-          </div>
-          <div className="mt-3 flex gap-2 overflow-x-auto pb-1 sm:mt-4">
-            <Button 
-              variant={category === "all" ? "default" : "secondary"} 
-              size="sm" 
-              onClick={() => setCategory("all")}
-              className="h-10 text-sm flex-shrink-0 sm:h-9"
-            >
-              All
-            </Button>
-            {categories.map((item) => (
+      <section className="sticky top-20 z-20 mx-auto max-w-6xl px-4 -mt-6 sm:-mt-8 pb-2 sm:pb-0">
+        <div className="rounded-[2rem] border bg-card/95 p-3 shadow-soft backdrop-blur-sm sm:p-4">
+          <div className="flex flex-col gap-3">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-4 top-3 h-4 w-4 text-muted-foreground sm:top-3.5" />
+              <Input
+                className="pl-11 text-base h-12 sm:h-11 w-full"
+                placeholder="Search food, drinks..."
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+              />
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
               <Button
-                key={item.id}
-                variant={category === item.id ? "default" : "secondary"}
+                variant={category === "all" ? "default" : "secondary"}
                 size="sm"
-                onClick={() => setCategory(item.id)}
-                className="h-10 text-sm flex-shrink-0 sm:h-9"
+                onClick={() => setCategory("all")}
+                className="h-10 min-w-[7rem] text-sm flex-shrink-0"
               >
-                {item.name}
+                All
               </Button>
-            ))}
+              {categories.map((item) => (
+                <Button
+                  key={item.id}
+                  variant={category === item.id ? "default" : "secondary"}
+                  size="sm"
+                  onClick={() => setCategory(item.id)}
+                  className="h-10 min-w-[7rem] text-sm flex-shrink-0"
+                >
+                  {item.name}
+                </Button>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -192,17 +211,22 @@ export function Storefront({
         </div>
       </section>
 
-      <nav className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/92 px-2 py-2 backdrop-blur lg:hidden">
-        <div className="mx-auto grid max-w-md grid-cols-3 gap-1">
-          <Button variant="ghost" className="h-14 flex-col gap-1 text-xs font-semibold hover:bg-primary/10 active:bg-primary/20">
+      <nav className="fixed inset-x-0 bottom-0 z-30 bg-primary text-white px-2 py-2 lg:hidden">
+        <div className="mx-auto grid max-w-xl grid-cols-4 gap-1">
+          <Button variant="ghost" className="h-14 flex-col gap-1 text-xs font-semibold text-white hover:bg-white/10 active:bg-white/20">
             <Home className="h-5 w-5" /> Home
           </Button>
-          <Button variant="ghost" className="h-14 flex-col gap-1 text-xs font-semibold hover:bg-primary/10 active:bg-primary/20" onClick={() => cart.setDrawerOpen(true)}>
+          <Button variant="ghost" className="h-14 flex-col gap-1 text-xs font-semibold text-white hover:bg-white/10 active:bg-white/20" onClick={() => cart.setDrawerOpen(true)}>
             <ShoppingBag className="h-5 w-5" /> Cart
           </Button>
-          <Button asChild variant="ghost" className="h-14 flex-col gap-1 text-xs font-semibold hover:bg-primary/10 active:bg-primary/20">
-            <Link href="/track/demo">
-              <Clock className="h-5 w-5" /> Track
+          <Button asChild variant="ghost" className="h-14 flex-col gap-1 text-xs font-semibold text-white hover:bg-white/10 active:bg-white/20">
+            <Link href={"/orders" as any}>
+              <ClipboardList className="h-5 w-5" /> Orders
+            </Link>
+          </Button>
+          <Button asChild variant="ghost" className="h-14 flex-col gap-1 text-xs font-semibold text-white hover:bg-white/10 active:bg-white/20">
+            <Link href="/profile">
+              <User className="h-5 w-5" /> Profile
             </Link>
           </Button>
         </div>

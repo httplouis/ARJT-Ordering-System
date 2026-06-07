@@ -5,7 +5,11 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 
-export function ThemeToggle() {
+interface ThemeToggleProps {
+  className?: string;
+}
+
+export function ThemeToggle({ className }: ThemeToggleProps) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -20,6 +24,7 @@ export function ThemeToggle() {
         size="icon"
         variant="ghost"
         disabled
+        className={className}
       >
         <Sun className="h-5 w-5" />
       </Button>
@@ -34,7 +39,7 @@ export function ThemeToggle() {
       size="icon"
       variant="ghost"
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="text-white hover:bg-white/15"
+      className={className}
     >
       {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
     </Button>

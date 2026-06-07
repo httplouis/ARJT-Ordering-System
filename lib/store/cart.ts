@@ -1,9 +1,30 @@
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
 import type { CartItem, Product, ProductOption } from "@/lib/types";
 import { cartItemTotal } from "@/lib/utils";
+
+const CART_STORAGE_KEY = "arjt-cart";
+const CART_USER_KEY = "arjt-user-id";
+
+const cartStorage = createJSONStorage(() => ({
+  getItem(name: string) {
+    if (typeof window === "undefined") return null;
+    const userId = window.localStorage.getItem(CART_USER_KEY);
+    return window.localStorage.getItem(`${name}-${userId ?? "guest"}`);
+  },
+  setItem(name: string, value: string) {
+    if (typeof window === "undefined") return null;
+    const userId = window.localStorage.getItem(CART_USER_KEY);
+    return window.localStorage.setItem(`${name}-${userId ?? "guest"}`, value);
+  },
+  removeItem(name: string) {
+    if (typeof window === "undefined") return null;
+    const userId = window.localStorage.getItem(CART_USER_KEY);
+    return window.localStorage.removeItem(`${name}-${userId ?? "guest"}`);
+  }
+}));
 
 type CartState = {
   items: CartItem[];
@@ -51,6 +72,6 @@ export const useCart = create<CartState>()(
       subtotal: () => get().items.reduce((sum, item) => sum + cartItemTotal(item), 0),
       count: () => get().items.reduce((sum, item) => sum + item.quantity, 0)
     }),
-    { name: "arjt-cart" }
+    { name: CART_STORAGE_KEY, storage: cartStorage }
   )
 );

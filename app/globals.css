@@ -3,44 +3,44 @@
 @tailwind utilities;
 
 :root {
-  --background: 0 0% 100%;
-  --foreground: 230 15% 12%;
-  --card: 0 0% 100%;
-  --card-foreground: 230 15% 12%;
-  --primary: 350 72% 34%;
+  --background: 128 27% 95%;
+  --foreground: 145 18% 15%;
+  --card: 128 16% 99%;
+  --card-foreground: 145 18% 15%;
+  --primary: 135 62% 34%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 40 88% 92%;
-  --secondary-foreground: 350 72% 24%;
-  --muted: 350 20% 96%;
-  --muted-foreground: 230 8% 42%;
-  --accent: 9 92% 61%;
+  --secondary: 134 18% 88%;
+  --secondary-foreground: 145 20% 22%;
+  --muted: 128 16% 94%;
+  --muted-foreground: 128 20% 30%;
+  --accent: 135 60% 36%;
   --accent-foreground: 0 0% 100%;
-  --destructive: 0 84% 60%;
+  --destructive: 0 80% 60%;
   --destructive-foreground: 0 0% 100%;
-  --border: 350 18% 88%;
-  --input: 350 18% 88%;
-  --ring: 350 72% 34%;
+  --border: 128 18% 84%;
+  --input: 128 16% 96%;
+  --ring: 135 62% 34%;
   --radius: 1rem;
 }
 
 .dark {
-  --background: 230 18% 8%;
-  --foreground: 0 0% 98%;
-  --card: 230 16% 11%;
-  --card-foreground: 0 0% 98%;
-  --primary: 350 78% 55%;
+  --background: 0 0% 10%;
+  --foreground: 0 0% 96%;
+  --card: 0 0% 14%;
+  --card-foreground: 0 0% 96%;
+  --primary: 135 45% 60%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 350 18% 18%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 230 12% 18%;
-  --muted-foreground: 230 8% 70%;
-  --accent: 18 94% 62%;
+  --secondary: 0 0% 28%;
+  --secondary-foreground: 0 0% 88%;
+  --muted: 0 0% 18%;
+  --muted-foreground: 0 0% 68%;
+  --accent: 135 50% 62%;
   --accent-foreground: 0 0% 100%;
   --destructive: 0 70% 50%;
   --destructive-foreground: 0 0% 100%;
-  --border: 230 12% 22%;
-  --input: 230 12% 22%;
-  --ring: 350 78% 55%;
+  --border: 0 0% 20%;
+  --input: 0 0% 16%;
+  --ring: 135 45% 60%;
 }
 
 * {

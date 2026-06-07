@@ -4,6 +4,7 @@ import "./globals.css";
 import { AppProviders } from "@/components/providers/app-providers";
 import { PwaRegister } from "@/components/pwa-register";
 import { Toaster } from "@/components/ui/sonner";
+import MessageWidgetWrapper from "@/components/contact/message-widget-wrapper";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -15,6 +16,10 @@ export const metadata: Metadata = {
   description: "Order ahead from ARJT Store and skip the school-break line.",
   applicationName: "ARJT Store",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/icon.svg",
+    apple: "/ARJT_LOGO.png"
+  },
   appleWebApp: {
     capable: true,
     title: "ARJT Store",
@@ -28,7 +33,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#9f1239",
+  themeColor: "#1f7c26",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1
@@ -42,6 +47,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           {children}
           <Toaster richColors position="top-center" />
           <PwaRegister />
+          {/* Floating message widget for customers (client-only) */}
+          <MessageWidgetWrapper />
         </AppProviders>
       </body>
     </html>

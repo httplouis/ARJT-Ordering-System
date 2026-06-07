@@ -17,7 +17,29 @@ export async function createClient() {
         return cookieStore.getAll();
       },
       setAll(cookiesToSet: { name: string; value: string; options: Record<string, unknown> }[]) {
-        cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
+        // Attempt to set cookies, but Next.js only allows modifying cookies
+        // inside Server Actions or Route Handlers. When this helper runs in
+        // other server contexts (like server components during rendering),
+        // calling `cookieStore.set` will throw. Catch and ignore such errors
+        // to avoid crashing the app while still allowing cookie setting when
+        // used from an allowed context.
+        cookiesToSet.forEach(({ name, value, options }) => {
+          try {
+            // cookieStore.set may throw if used outside of a Route Handler
+            // or Server Action — swallow that specific runtime error.
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (cookieStore as any).set(name, value, options);
+          } catch (err) {
+            // Intentionally ignore cookie modification errors here. In
+            // a Route Handler/Server Action the set will succeed; during
+            // rendering it's expected to fail and is non-fatal.
+            // Optionally log in development for visibility.
+            if (process.env.NODE_ENV === "development") {
+              // eslint-disable-next-line no-console
+              console.warn("Supabase cookie set skipped (not in Server Action/Route Handler):", (err as Error).message);
+            }
+          }
+        });
       }
     }
   });

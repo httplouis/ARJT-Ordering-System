@@ -6,9 +6,15 @@
   "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#9f1239",
+  "theme_color": "#1f7c26",
   "orientation": "portrait",
   "icons": [
+    {
+      "src": "/ARJT_LOGO.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "/icon.svg",
       "sizes": "any",

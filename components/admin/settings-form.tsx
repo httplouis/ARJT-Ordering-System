@@ -44,7 +44,7 @@ export function SettingsForm({ settings }: { settings: StoreSettings }) {
           </div>
           <Input placeholder="GCash account name" {...form.register("gcash_name")} />
           <Input placeholder="GCash number" {...form.register("gcash_number")} />
-          <Input placeholder="GCash QR URL" {...form.register("gcash_qr_url")} />
+          <Input placeholder="GCash QR URL or /gcash-qr.jpg" {...form.register("gcash_qr_url")} />
           <Button className="w-full">
             <Save className="h-4 w-4" /> Save Settings
           </Button>

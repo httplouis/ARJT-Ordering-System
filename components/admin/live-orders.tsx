@@ -1,17 +1,31 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Search, Volume2 } from "lucide-react";
+import { Search, Volume2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
-import { updateOrderStatusAction } from "@/app/actions";
+import { deleteOrderAction, updateOrderStatusAction } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/lib/supabase/client";
 import type { Order, OrderStatus } from "@/lib/types";
-import { formatCurrency, statusLabel, statusTone } from "@/lib/utils";
+import { cn, formatCurrency, statusLabel, statusTone } from "@/lib/utils";
 
-const nextStatuses: OrderStatus[] = ["confirmed", "preparing", "ready_for_pickup", "out_for_delivery", "completed", "cancelled"];
+const formatDateTime = (value: string) =>
+  new Intl.DateTimeFormat("en-PH", {
+    dateStyle: "medium",
+    timeStyle: "short"
+  }).format(new Date(value));
 
 export function LiveOrders({ initialOrders }: { initialOrders: Order[] }) {
   const [orders, setOrders] = useState(initialOrders);
@@ -21,10 +35,15 @@ export function LiveOrders({ initialOrders }: { initialOrders: Order[] }) {
   const filtered = useMemo(
     () =>
       orders.filter((order) =>
-        `${order.customer_name} ${order.queue_number} ${order.contact_number}`.toLowerCase().includes(query.toLowerCase())
+        `${order.customer_name} ${order.queue_number} ${order.contact_number} ${order.notes ?? ""}`
+          .toLowerCase()
+          .includes(query.toLowerCase())
       ),
     [orders, query]
   );
+
+  const newOrders = filtered.filter((o) => o.status === "pending");
+  const otherOrders = filtered.filter((o) => o.status !== "pending");
 
   useEffect(() => {
     const supabase = createClient();
@@ -41,19 +60,39 @@ export function LiveOrders({ initialOrders }: { initialOrders: Order[] }) {
         if (payload.eventType === "UPDATE") {
           setOrders((current) => current.map((order) => (order.id === payload.new.id ? { ...order, ...(payload.new as Order) } : order)));
         }
+        if (payload.eventType === "DELETE") {
+          setOrders((current) => current.filter((order) => order.id !== payload.old.id));
+        }
       })
       .subscribe();
 
+    const interval = setInterval(async () => {
+      const { data, error } = await supabase.from("orders").select("*, order_items(*), payments(*)").order("created_at", { ascending: false });
+      if (!error && data) {
+        setOrders(data as Order[]);
+      }
+    }, 1000);
+
     return () => {
+      clearInterval(interval);
       supabase.removeChannel(channel);
     };
   }, []);
+
+  const handleAcknowledge = () => {
+    return;
+  };
 
   return (
     <Card>
       <CardHeader>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <CardTitle>Live Order Queue</CardTitle>
+          <div className="space-y-1">
+            <CardTitle>Live Order Queue</CardTitle>
+            <p className="text-xs text-muted-foreground">
+              {newOrders.length > 0 && `${newOrders.length} new order${newOrders.length > 1 ? "s" : ""} waiting`}
+            </p>
+          </div>
           <div className="relative sm:w-80">
             <Search className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-muted-foreground" />
             <Input className="pl-11" placeholder="Search queue..." value={query} onChange={(event) => setQuery(event.target.value)} />
@@ -62,48 +101,272 @@ export function LiveOrders({ initialOrders }: { initialOrders: Order[] }) {
       </CardHeader>
       <CardContent className="space-y-3">
         <audio ref={audioRef} src="/notify.mp3" preload="auto" />
-        {filtered.map((order) => (
-          <div key={order.id} className="rounded-3xl border p-4">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <div className="flex items-center gap-2">
-                  <p className="text-2xl font-black">#{order.queue_number}</p>
-                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${statusTone(order.status)}`}>
-                    {statusLabel(order.status)}
-                  </span>
-                </div>
-                <p className="mt-1 font-semibold">{order.customer_name}</p>
-                <p className="text-sm text-muted-foreground">
-                  {order.fulfillment_type} · {order.contact_number} · {formatCurrency(order.total)}
-                </p>
-              </div>
-              <div className="flex gap-2 overflow-x-auto pb-1">
-                {nextStatuses.map((status) => (
-                  <Button key={status} size="sm" variant={order.status === status ? "default" : "secondary"} onClick={() => updateOrderStatusAction(order.id, status)}>
-                    {statusLabel(status)}
-                  </Button>
-                ))}
-                <Button size="icon" variant="outline" onClick={() => window.print()} aria-label="Print receipt">
-                  <Volume2 className="h-4 w-4" />
-                </Button>
-              </div>
+
+        {/* New Orders Section */}
+        {newOrders.length > 0 && (
+          <div className="space-y-3 rounded-2xl border-2 border-primary/20 bg-primary/5 p-4">
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+              <p className="font-semibold text-primary">New Orders ({newOrders.length})</p>
             </div>
-            {order.order_items?.length ? (
-              <div className="mt-3 grid gap-2 border-t pt-3 text-sm sm:grid-cols-2">
-                {order.order_items.map((item) => (
-                  <div key={item.id} className="flex justify-between rounded-2xl bg-muted p-3">
-                    <span>{item.quantity}x {item.product_name}</span>
-                    <strong>{formatCurrency((item.unit_price + item.options_total) * item.quantity)}</strong>
-                  </div>
-                ))}
-              </div>
-            ) : null}
+            {newOrders.map((order) => (
+              <OrderCard
+                key={order.id}
+                order={order}
+                isNew
+                onDelete={() => setOrders((current) => current.filter((item) => item.id !== order.id))}
+              />
+            ))}
           </div>
-        ))}
-        {!filtered.length ? (
-          <div className="rounded-3xl border border-dashed p-8 text-center text-muted-foreground">No orders in this view.</div>
-        ) : null}
+        )}
+
+        {/* Other Orders Section */}
+        {otherOrders.length > 0 && (
+          <div className="space-y-3">
+            {newOrders.length > 0 && <p className="text-xs font-semibold text-muted-foreground mt-4">Other Orders</p>}
+            {otherOrders.map((order) => (
+              <OrderCard
+                key={order.id}
+                order={order}
+                isNew={false}
+                onDelete={() => setOrders((current) => current.filter((item) => item.id !== order.id))}
+              />
+            ))}
+          </div>
+        )}
+
+        {filtered.length === 0 && (
+          <div className="rounded-3xl border border-dashed p-8 text-center text-muted-foreground">
+            <p className="font-semibold">No orders in this view</p>
+            <p className="text-xs mt-1">New orders will appear here</p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
 }
+
+function OrderCard({
+  order,
+  isNew,
+  onDelete
+}: {
+  order: Order;
+  isNew: boolean;
+  onDelete: () => void;
+}) {
+  const [showDetails, setShowDetails] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+
+    try {
+      await deleteOrderAction(order.id);
+      onDelete();
+      toast.success("Order deleted");
+    } catch (error) {
+      toast.error("Unable to delete order");
+    } finally {
+      setIsDeleting(false);
+      setConfirmOpen(false);
+    }
+  };
+
+  return (
+    <div className={`w-full max-w-full overflow-hidden rounded-3xl border p-4 transition-all shadow-sm ${isNew ? "bg-primary/5 border-primary/30" : "bg-background"}`}>
+      <div className="flex flex-col gap-4 sm:gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-2xl font-black">#{order.queue_number}</p>
+              <Badge className={cn("text-xs", statusTone(order.status))}>
+                {statusLabel(order.status)}
+              </Badge>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1 truncate">{formatDateTime(order.created_at)}</p>
+          </div>
+
+          {order.status === "pending" ? (
+            <Button
+              size="sm"
+              onClick={async () => {
+                await updateOrderStatusAction(order.id, "preparing");
+              }}
+              className="text-xs self-start sm:self-center"
+            >
+              Start preparing
+            </Button>
+          ) : null}
+        </div>
+
+        <div className="rounded-3xl border border-muted/30 bg-muted/50 p-3 text-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Customer</p>
+              <p className="font-semibold truncate">{order.customer_name}</p>
+              {order.grade_section ? <p className="text-xs text-muted-foreground">{order.grade_section}</p> : null}
+            </div>
+            <div className="text-right">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">{order.fulfillment_type === "pickup" ? "Pickup" : "Delivery"}</p>
+              <p className="font-semibold">{new Intl.DateTimeFormat("en-PH", { hour: "numeric", minute: "2-digit" }).format(new Date(order.desired_time))}</p>
+            </div>
+          </div>
+          {order.estimated_ready_at ? (
+            <p className="mt-3 text-xs text-primary">Est. ready: {formatDateTime(order.estimated_ready_at)}</p>
+          ) : null}
+        </div>
+      </div>
+
+      <button
+        onClick={() => setShowDetails(!showDetails)}
+        className="w-full text-left text-xs font-semibold text-primary hover:text-primary/80 mt-3 mb-3 transition-colors"
+      >
+        {showDetails ? "▼ Hide details" : "▶ Show details"}
+      </button>
+
+      {showDetails && (
+        <div className="space-y-4 border-t pt-4">
+          {/* Order Items */}
+          <div>
+            <p className="font-semibold text-sm mb-3">Items</p>
+            <div className="space-y-3">
+              {order.order_items?.map((item) => (
+                <div key={item.id} className="flex flex-col gap-3 rounded-3xl border border-muted/30 bg-muted/50 p-4 text-sm sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="font-medium truncate">{item.quantity}x {item.product_name}</p>
+                    {item.selected_options?.length ? (
+                      <p className="text-xs text-muted-foreground truncate">Options: {item.selected_options.map((opt) => opt.name).join(", ")}</p>
+                    ) : null}
+                    {item.note ? <p className="text-xs italic text-muted-foreground">Note: {item.note}</p> : null}
+                  </div>
+                  <strong className="text-sm text-primary">{formatCurrency((item.unit_price + item.options_total) * item.quantity)}</strong>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Payment */}
+          <div className="rounded-3xl border border-muted/30 bg-muted/50 p-4 text-sm">
+            <p className="font-semibold mb-3">Payment</p>
+            <div className="space-y-2 text-sm">
+              <p>Amount: <strong>{formatCurrency(order.total)}</strong></p>
+              <p>Status: {order.payments?.[0]?.status ?? "pending_verification"}</p>
+              {order.payments?.[0]?.gcash_reference && <p>Ref: {order.payments[0].gcash_reference}</p>}
+            </div>
+            {order.payments?.[0]?.screenshot_url && (
+              <Dialog>
+                <div className="mt-2">
+                  <DialogTrigger asChild>
+                    <button className="group w-full overflow-hidden rounded-xl border bg-muted/50 transition hover:border-primary">
+                      <img
+                        src={order.payments[0].screenshot_url}
+                        alt="Payment proof thumbnail"
+                        className="h-36 w-full object-cover transition duration-200 group-hover:scale-105"
+                      />
+                      <div className="border-t px-3 py-2 text-left text-xs font-semibold text-muted-foreground">
+                        Click to view full image
+                      </div>
+                    </button>
+                  </DialogTrigger>
+
+                  <DialogContent className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="max-h-[90vh] w-full max-w-4xl overflow-hidden rounded-3xl bg-background shadow-xl">
+                      <DialogHeader className="flex items-center justify-between border-b px-5 py-4">
+                        <DialogTitle className="text-lg font-bold">Payment proof</DialogTitle>
+                        <DialogClose className="rounded-lg border border-muted px-3 py-1 text-sm transition hover:bg-muted">Close</DialogClose>
+                      </DialogHeader>
+                      <div className="p-4">
+                        <img
+                          src={order.payments[0].screenshot_url}
+                          alt="Payment proof full"
+                          className="w-full h-auto max-h-[80vh] object-contain"
+                        />
+                      </div>
+                    </div>
+                  </DialogContent>
+                </div>
+              </Dialog>
+            )}
+          </div>
+
+          {/* Customer Notes */}
+          {order.notes && (
+            <div className="rounded-3xl border border-amber-200/50 bg-amber-50/70 p-4 text-sm">
+              <p className="font-semibold text-amber-900 dark:text-amber-200 mb-2">Customer Notes</p>
+              <p className="text-sm text-amber-800 dark:text-amber-300">{order.notes}</p>
+            </div>
+          )}
+
+          {/* Status Controls */}
+          <div className="flex flex-col gap-3 pt-4 border-t sm:flex-row sm:flex-wrap sm:items-center">
+            {order.status === "pending" ? (
+              <Button
+                size="sm"
+                onClick={async () => {
+                  await updateOrderStatusAction(order.id, "preparing");
+                }}
+                className="text-xs"
+              >
+                Start preparing
+              </Button>
+            ) : order.status === "preparing" ? (
+              <Button
+                size="sm"
+                onClick={async () => {
+                  await updateOrderStatusAction(order.id, "completed");
+                }}
+                className="text-xs"
+              >
+                Mark complete
+              </Button>
+            ) : (
+              <Badge className={statusTone(order.status)}>{statusLabel(order.status)}</Badge>
+            )}
+
+            <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+              <DialogTrigger asChild>
+                <Button variant="destructive" size="sm" className="text-xs">
+                  Delete order
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div className="max-w-md rounded-3xl bg-background shadow-xl border">
+                  <DialogHeader className="border-b px-5 py-4">
+                    <DialogTitle className="text-lg font-bold">Delete order?</DialogTitle>
+                    <p className="text-sm text-muted-foreground mt-1">Are you sure you want to delete this order?</p>
+                  </DialogHeader>
+                  <div className="p-5 space-y-4">
+                    <div className="rounded-2xl bg-muted/50 p-4">
+                      <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Order</p>
+                      <p className="font-semibold">#{order.queue_number} • {order.customer_name}</p>
+                      {order.grade_section ? <p className="text-xs text-muted-foreground mt-1">{order.grade_section}</p> : null}
+                    </div>
+                    <DialogFooter className="flex justify-end gap-2">
+                      <DialogClose asChild>
+                        <Button variant="outline" size="sm" className="text-xs">
+                          Cancel
+                        </Button>
+                      </DialogClose>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="text-xs"
+                        onClick={handleDelete}
+                        disabled={isDeleting}
+                      >
+                        {isDeleting ? "Deleting..." : "Yes, delete"}
+                      </Button>
+                    </DialogFooter>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+

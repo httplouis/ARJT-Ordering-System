@@ -1,5 +1,5 @@
 const CACHE = "arjt-store-v1";
-const STATIC_ASSETS = ["/", "/manifest.webmanifest", "/icon.svg", "/gcash-qr.svg"];
+const STATIC_ASSETS = ["/", "/manifest.webmanifest", "/icon.svg", "/gcash-qr.svg", "/gcash-qr.jpg"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(STATIC_ASSETS)));

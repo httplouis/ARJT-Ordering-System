@@ -4,7 +4,8 @@ import Image from "next/image";
 import { Minus, Plus, Trash2, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, useTransition, type ChangeEvent } from "react";
 import { toast } from "sonner";
 import { createOrderAction } from "@/app/actions";
 import { Button } from "@/components/ui/button";
@@ -14,16 +15,24 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import type { StoreSettings } from "@/lib/types";
 import { useCart } from "@/lib/store/cart";
 import { cartItemTotal, formatCurrency } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
 import { checkoutSchema, type CheckoutInput } from "@/lib/validations";
 
 export function CartDrawer({ settings }: { settings: StoreSettings }) {
   const cart = useCart();
+  const router = useRouter();
+  const today = new Date().toISOString().slice(0, 10);
   const [pending, startTransition] = useTransition();
+  const [screenshotName, setScreenshotName] = useState<string>("");
+  const [successOpen, setSuccessOpen] = useState(false);
+  const [recentOrderId, setRecentOrderId] = useState<string | null>(null);
+
   const form = useForm<CheckoutInput>({
     resolver: zodResolver(checkoutSchema),
     defaultValues: {
       fulfillment_type: "pickup",
-      desired_time: "",
+      desired_date: today,
+      desired_time: "11:30",
       customer_name: "",
       contact_number: "",
       grade_section: "",
@@ -32,8 +41,81 @@ export function CartDrawer({ settings }: { settings: StoreSettings }) {
       payment_screenshot_url: ""
     }
   });
+
+  useEffect(() => {
+    const supabase = createClient();
+    if (!supabase) return;
+
+    async function setAccountName() {
+      const { data } = await supabase.auth.getUser();
+      const user = data.user;
+      if (!user) return;
+
+      const { data: profile } = await supabase.from("users").select("full_name").eq("id", user.id).single();
+      const defaultName = profile?.full_name ?? user.user_metadata?.full_name ?? user.email ?? "";
+      const currentName = form.getValues("customer_name");
+      if (!currentName && defaultName) {
+        form.setValue("customer_name", defaultName);
+      }
+    }
+
+    setAccountName();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const fulfillment = form.watch("fulfillment_type");
+  const desiredDate = form.watch("desired_date");
   const total = cart.subtotal() + (fulfillment === "delivery" ? settings.delivery_fee : 0);
+
+  function handleScreenshotChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) {
+      setScreenshotName("");
+      form.setValue("payment_screenshot_url", "");
+      return;
+    }
+
+    if (file.size > 1048576) {
+      toast.error("Screenshot must be 1MB or less.");
+      event.target.value = "";
+      setScreenshotName("");
+      form.setValue("payment_screenshot_url", "");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result === "string") {
+        form.setValue("payment_screenshot_url", result);
+        setScreenshotName(file.name);
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function setQuickTime(time: string) {
+    form.setValue("desired_time", time);
+  }
+
+  async function handleSubmit(values: CheckoutInput) {
+    startTransition(async () => {
+      try {
+        const result = await createOrderAction(values, cart.items);
+        if (result?.orderId) {
+          cart.clear();
+          setRecentOrderId(result.orderId);
+          setSuccessOpen(true);
+          toast.success("Order placed! Admin will receive it shortly.");
+          setTimeout(() => {
+            setSuccessOpen(false);
+            router.push(`/orders?orderId=${result.orderId}`);
+          }, 1600);
+        }
+      } catch (error) {
+        toast.error((error as Error)?.message || "Unable to place order.");
+      }
+    });
+  }
 
   return (
     <Dialog open={cart.drawerOpen} onOpenChange={cart.setDrawerOpen}>
@@ -85,17 +167,11 @@ export function CartDrawer({ settings }: { settings: StoreSettings }) {
           {cart.items.length ? (
             <form
               className="space-y-4"
-              onSubmit={form.handleSubmit((values) => {
-                startTransition(async () => {
-                  toast.success("Order sent. Preparing your tracker...");
-                  await createOrderAction(values, cart.items);
-                  cart.clear();
-                });
-              })}
+              onSubmit={form.handleSubmit(handleSubmit)}
             >
               <div className="grid grid-cols-2 gap-3">
                 <Input placeholder="Name" {...form.register("customer_name")} />
-                <Input placeholder="Contact number" {...form.register("contact_number")} />
+                <Input placeholder="Contact number optional" {...form.register("contact_number")} />
               </div>
               <Input placeholder="Grade/Section optional" {...form.register("grade_section")} />
               <div className="grid grid-cols-2 gap-2">
@@ -114,7 +190,23 @@ export function CartDrawer({ settings }: { settings: StoreSettings }) {
                   Delivery
                 </Button>
               </div>
-              <Input type="datetime-local" {...form.register("desired_time")} />
+              <div className="space-y-2 rounded-3xl border p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="font-bold">Delivery date</p>
+                    <p className="text-sm text-muted-foreground">Default is today</p>
+                  </div>
+                  <span className="text-sm">{desiredDate}</span>
+                </div>
+                <Input type="date" min={today} {...form.register("desired_date")} />
+                <div className="flex flex-wrap gap-2">
+                  <Button type="button" variant="secondary" size="sm" onClick={() => setQuickTime("08:00")}>Breakfast</Button>
+                  <Button type="button" variant="secondary" size="sm" onClick={() => setQuickTime("11:30")}>Lunch</Button>
+                  <Button type="button" variant="secondary" size="sm" onClick={() => setQuickTime("14:00")}>Afternoon</Button>
+                  <Button type="button" variant="secondary" size="sm" onClick={() => setQuickTime("17:30")}>Dinner</Button>
+                </div>
+                <Input type="time" {...form.register("desired_time")} />
+              </div>
               <Textarea placeholder="Order notes or delivery location" {...form.register("notes")} />
 
               <div className="rounded-3xl border bg-secondary/60 p-4">
@@ -122,16 +214,30 @@ export function CartDrawer({ settings }: { settings: StoreSettings }) {
                 <p className="mt-1 text-sm text-muted-foreground">
                   Send payment to <strong>{settings.gcash_name}</strong> · <strong>{settings.gcash_number}</strong>
                 </p>
-                <div className="mt-3 grid grid-cols-[96px_1fr] gap-3">
-                  <Image src={settings.gcash_qr_url} alt="GCash QR" width={96} height={96} className="rounded-2xl bg-white p-2" />
-                  <div className="space-y-2">
-                    <Input placeholder="Reference number" {...form.register("gcash_reference")} />
-                    <Input 
-                      type="file" 
-                      accept="image/*"
-                      placeholder="Upload payment screenshot" 
-                      {...form.register("payment_screenshot_url")} 
+                <p className="mt-2 text-sm text-muted-foreground">Scan the QR code below or use the number above.</p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-[160px_1fr]">
+                  <div className="rounded-3xl bg-white p-3 shadow-sm flex items-center justify-center">
+                    <Image
+                      src={settings.gcash_qr_url || "/gcash-qr.jpg"}
+                      alt="GCash QR"
+                      width={160}
+                      height={160}
+                      className="h-auto w-full rounded-2xl"
+                      priority
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Input placeholder="Reference number (optional)" {...form.register("gcash_reference")} />
+                    <div className="space-y-2 rounded-2xl border border-input bg-background p-3 text-sm">
+                      <span className="font-medium">Upload payment screenshot (optional, max 1MB)</span>
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <label className="inline-flex items-center justify-center rounded-2xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-primary/90 cursor-pointer">
+                          Choose file
+                          <Input type="file" accept="image/*" onChange={handleScreenshotChange} className="sr-only" />
+                        </label>
+                        <span className="truncate text-sm text-muted-foreground">{screenshotName || "No file chosen"}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -158,6 +264,28 @@ export function CartDrawer({ settings }: { settings: StoreSettings }) {
           ) : null}
         </div>
       </DialogContent>
+
+      {successOpen ? (
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/60 p-4">
+          <div className="max-w-md rounded-3xl border border-white/10 bg-background p-6 shadow-soft">
+            <div className="mb-4 text-center">
+              <h2 className="text-2xl font-black">Thank you for ordering!</h2>
+            </div>
+            <div className="space-y-4 text-center">
+              <p className="text-sm text-muted-foreground">Your order is on its way to the admin for processing.</p>
+              <Button
+                className="w-full"
+                onClick={() => {
+                  setSuccessOpen(false);
+                  if (recentOrderId) router.push(`/orders?orderId=${recentOrderId}`);
+                }}
+              >
+                Go to order status
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </Dialog>
   );
 }
