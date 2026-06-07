@@ -30,21 +30,25 @@ const formatDateTime = (value: string) =>
 export function LiveOrders({ initialOrders }: { initialOrders: Order[] }) {
   const [orders, setOrders] = useState(initialOrders);
   const [query, setQuery] = useState("");
+  const [historyStatus, setHistoryStatus] = useState<OrderStatus | "all">("all");
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const filtered = useMemo(
     () =>
-      orders.filter((order) =>
-        `${order.customer_name} ${order.queue_number} ${order.contact_number} ${order.notes ?? ""}`
-          .toLowerCase()
-          .includes(query.toLowerCase())
-      ),
-    [orders, query]
+      orders
+        .filter((order) =>
+          `${order.customer_name} ${order.queue_number} ${order.contact_number} ${order.notes ?? ""}`
+            .toLowerCase()
+            .includes(query.toLowerCase())
+        )
+        .filter((order) => historyStatus === "all" || order.status === historyStatus),
+    [orders, query, historyStatus]
   );
 
   const newOrders = filtered.filter((o) => o.status === "pending");
   const inProgressOrders = filtered.filter((o) => ["confirmed", "preparing", "ready_for_pickup", "out_for_delivery"].includes(o.status));
   const historyOrders = filtered.filter((o) => ["completed", "cancelled", "out_of_stock"].includes(o.status));
+  const filteredHistoryOrders = historyOrders.filter((o) => historyStatus === "all" || o.status === historyStatus);
 
   useEffect(() => {
     const supabase = createClient();
@@ -103,6 +107,29 @@ export function LiveOrders({ initialOrders }: { initialOrders: Order[] }) {
       <CardContent className="space-y-3">
         <audio ref={audioRef} src="/notify.mp3" preload="auto" />
 
+        {/* History Filter Panel */}
+        <div className="rounded-3xl border border-muted/20 bg-muted/5 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Order history</p>
+              <p className="text-sm font-semibold">Filter by status</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {(["all", "completed", "cancelled", "out_of_stock"] as const).map((status) => (
+                <Button
+                  key={status}
+                  size="sm"
+                  variant={historyStatus === status ? "secondary" : "outline"}
+                  className="text-xs"
+                  onClick={() => setHistoryStatus(status)}
+                >
+                  {status === "all" ? "All" : status === "out_of_stock" ? "Out of stock" : status.charAt(0).toUpperCase() + status.slice(1)}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* New Orders Section */}
         {newOrders.length > 0 && (
           <div className="space-y-3 rounded-2xl border-2 border-primary/20 bg-primary/5 p-4">
@@ -146,18 +173,27 @@ export function LiveOrders({ initialOrders }: { initialOrders: Order[] }) {
 
         {historyOrders.length > 0 && (
           <div className="space-y-3">
-            <p className="text-xs font-semibold text-muted-foreground mt-4">Order history</p>
-            {historyOrders.map((order) => (
-              <OrderCard
-                key={order.id}
-                order={order}
-                isNew={false}
-                onDelete={() => setOrders((current) => current.filter((item) => item.id !== order.id))}
-                onStatusUpdate={(orderId, status) =>
-                  setOrders((current) => current.map((item) => (item.id === orderId ? { ...item, status } : item)))
-                }
-              />
-            ))}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs font-semibold text-muted-foreground mt-4">Order history</p>
+              <p className="text-xs text-muted-foreground">
+                {filteredHistoryOrders.length} item{filteredHistoryOrders.length !== 1 ? "s" : ""} shown
+              </p>
+            </div>
+            {filteredHistoryOrders.length > 0 ? (
+              filteredHistoryOrders.map((order) => (
+                <OrderCard
+                  key={order.id}
+                  order={order}
+                  isNew={false}
+                  onDelete={() => setOrders((current) => current.filter((item) => item.id !== order.id))}
+                  onStatusUpdate={(orderId, status) =>
+                    setOrders((current) => current.map((item) => (item.id === orderId ? { ...item, status } : item)))
+                  }
+                />
+              ))
+            ) : (
+              <p className="text-xs text-muted-foreground">No history orders match this filter.</p>
+            )}
           </div>
         )}
 
@@ -185,6 +221,7 @@ function OrderCard({
 }) {
   const [showDetails, setShowDetails] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -216,6 +253,11 @@ function OrderCard({
     }
   };
 
+  const handleCancelOrder = async () => {
+    setCancelConfirmOpen(false);
+    await handleStatusChange("cancelled", "Order cancelled");
+  };
+
   return (
     <div className={`w-full max-w-full overflow-hidden rounded-3xl border p-4 transition-all shadow-sm ${isNew ? "bg-primary/5 border-primary/30" : "bg-background"}`}>
       <div className="flex flex-col gap-4 sm:gap-3">
@@ -245,17 +287,44 @@ function OrderCard({
             ) : null}
 
             {order.status !== "completed" && order.status !== "cancelled" ? (
-              <Button
-                size="sm"
-                variant="destructive"
-                onClick={async () => {
-                  await handleStatusChange("cancelled", "Order cancelled");
-                }}
-                className="text-xs self-start sm:self-center"
-                disabled={isUpdating}
-              >
-                Cancel order
-              </Button>
+              <Dialog open={cancelConfirmOpen} onOpenChange={setCancelConfirmOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" variant="destructive" className="text-xs self-start sm:self-center" disabled={isUpdating}>
+                    Cancel order
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                  <div className="max-w-md rounded-3xl bg-background shadow-xl border">
+                    <DialogHeader className="border-b px-5 py-4">
+                      <DialogTitle className="text-lg font-bold">Cancel order?</DialogTitle>
+                      <p className="text-sm text-muted-foreground mt-1">Are you sure you want to cancel this order?</p>
+                    </DialogHeader>
+                    <div className="p-5 space-y-4">
+                      <div className="rounded-2xl bg-muted/50 p-4">
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Order</p>
+                        <p className="font-semibold">#{order.queue_number} • {order.customer_name}</p>
+                        {order.grade_section ? <p className="text-xs text-muted-foreground mt-1">{order.grade_section}</p> : null}
+                      </div>
+                      <DialogFooter className="flex justify-end gap-2">
+                        <DialogClose asChild>
+                          <Button variant="outline" size="sm" className="text-xs">
+                            No, keep order
+                          </Button>
+                        </DialogClose>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="text-xs"
+                          onClick={handleCancelOrder}
+                          disabled={isUpdating}
+                        >
+                          {isUpdating ? "Cancelling..." : "Yes, cancel order"}
+                        </Button>
+                      </DialogFooter>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             ) : null}
           </div>
         </div>

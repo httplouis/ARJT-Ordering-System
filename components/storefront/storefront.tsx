@@ -65,13 +65,15 @@ export function Storefront({
         <div className="relative mx-auto max-w-6xl px-4 pb-4 pt-3 sm:pb-7 sm:pt-4">
           <nav className="relative flex items-center justify-between pb-4 sm:pb-6">
             <Link href="/" className="flex items-center gap-3">
-              <Image
-                src={mounted && (resolvedTheme === "dark" || theme === "dark") ? "/ARJT_LOGO_nobg.png" : "/ARJT_LOGO_WHITE.png"}
-                alt="Store logo"
-                width={88}
-                height={88}
-                className="object-contain"
-              />
+              <div className="relative h-[88px] w-[88px] shrink-0">
+                <Image
+                  src={mounted && (resolvedTheme === "dark" || theme === "dark") ? "/ARJT_LOGO_nobg.png" : "/ARJT_LOGO_WHITE.png"}
+                  alt="Store logo"
+                  fill
+                  sizes="88px"
+                  className="object-contain"
+                />
+              </div>
             </Link>
 
             <div className="flex flex-wrap items-center justify-end gap-2 text-right">
@@ -104,7 +106,7 @@ export function Storefront({
                 Order Ahead & Skip the Line
               </h2>
               <p className="mt-2 max-w-xl text-sm text-white/88 sm:mt-3 sm:text-base lg:text-lg">
-                Fast pickup for snacks, drinks, rice meals, halo-halo, and school essentials before break time hits.
+                Fast pickup for snacks, drinks, and rice meals before break time hits.
               </p>
               <div className="mt-3 flex flex-wrap gap-2 sm:mt-5 sm:gap-3">
                 <Badge className="text-xs bg-white text-primary sm:text-sm">

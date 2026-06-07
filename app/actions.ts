@@ -98,13 +98,29 @@ export async function createOrderAction(payload: unknown, cart: CartItem[]) {
     redirect(`/orders?orderId=demo-${queueNumber}`);
   }
 
-  const { data: profile } = await supabase
+  let profile: any;
+  let profileError: any;
+
+  ({ data: profile, error: profileError } = await supabase
     .from("users")
     .select("full_name, contact_number")
     .eq("id", user.id)
-    .single();
+    .single());
 
-  const contactNumber = profile?.contact_number?.trim() ?? "";
+  if (profileError?.code === "42703") {
+    ({ data: profile, error: profileError } = await supabase
+      .from("users")
+      .select("full_name")
+      .eq("id", user.id)
+      .single());
+  }
+
+  if (profileError) {
+    console.error("Profile fetch error:", profileError);
+    throw new Error("Unable to load profile information.");
+  }
+
+  const contactNumber = profile?.contact_number?.trim() ?? user.email ?? "";
   if (!contactNumber) {
     throw new Error("Please add your contact number in your profile before placing an order.");
   }
@@ -245,7 +261,11 @@ export async function upsertProductAction(payload: unknown, id?: string) {
   const supabase = createAdminClient();
   if (!supabase) return;
 
-  const row = { ...input, slug: input.name.toLowerCase().replaceAll(" ", "-") };
+  const row = {
+    ...input,
+    slug: input.name.toLowerCase().replaceAll(" ", "-"),
+    image_url: ""
+  };
   if (id) {
     await supabase.from("products").update(row).eq("id", id);
   } else {
@@ -285,10 +305,18 @@ export async function updateProfileAction(payload: unknown) {
     throw new Error("Unable to update profile");
   }
 
-  const { error } = await adminSupabase
+  let { error } = await adminSupabase
     .from("users")
     .update({ full_name: input.full_name, contact_number: input.contact_number })
     .eq("id", userData.user.id);
+
+  if (error?.code === "42703") {
+    const { error: fallbackError } = await adminSupabase
+      .from("users")
+      .update({ full_name: input.full_name })
+      .eq("id", userData.user.id);
+    error = fallbackError;
+  }
 
   if (error) {
     throw new Error(error.message);

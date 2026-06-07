@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, clearSupabaseSession } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { MessageSquare, X } from "lucide-react";
@@ -36,17 +36,27 @@ export default function MessageWidget() {
 
   async function fillUserInfo() {
     if (!supabase) return;
-    const { data } = await supabase.auth.getUser();
+    const { data, error } = await supabase.auth.getUser();
     const user = data.user;
-    if (user) {
-      setEmail(user.email ?? "");
-      const { data: profile } = await supabase
-        .from("users")
-        .select("full_name")
-        .eq("id", user.id)
-        .single();
-      setName(profile?.full_name ?? user.user_metadata?.full_name ?? user.email ?? "");
+    if (error || !user) {
+      await clearSupabaseSession(supabase);
+      return;
     }
+
+    setEmail(user.email ?? "");
+    const { data: profile, error: profileError } = await supabase
+      .from("users")
+      .select("full_name")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError) {
+      console.error("Profile fetch error:", profileError);
+      await clearSupabaseSession(supabase);
+      return;
+    }
+
+    setName(profile?.full_name ?? user.user_metadata?.full_name ?? user.email ?? "");
   }
 
   if (drawerOpen) return null;

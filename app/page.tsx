@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getStorefrontData } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 import { Storefront } from "@/components/storefront/storefront";
+import MessageWidgetWrapper from "@/components/contact/message-widget-wrapper";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -43,5 +44,11 @@ export default async function Home() {
   }
 
   const data = await getStorefrontData();
-  return <Storefront {...data} user={profile} />;
+  return (
+    <>
+      <Storefront {...data} user={profile} />
+      {/* Floating message widget for customers (client-only) */}
+      <MessageWidgetWrapper />
+    </>
+  );
 }

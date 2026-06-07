@@ -4,7 +4,7 @@ import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, syncSessionToServer } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -39,6 +39,10 @@ export function LoginForm({ searchParams }: { searchParams: Promise<{ next?: str
     if (error) {
       toast.error(error.message);
       return;
+    }
+
+    if (data?.session) {
+      await syncSessionToServer("SIGNED_IN", data.session);
     }
 
     if (data?.user?.id && typeof window !== "undefined") {

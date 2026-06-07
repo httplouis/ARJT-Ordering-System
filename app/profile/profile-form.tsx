@@ -47,14 +47,15 @@ export function ProfileForm({ fullName, contactNumber }: ProfileFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-4 rounded-2xl bg-muted/60 p-4 text-sm text-foreground">
+    <form onSubmit={handleSubmit} className="grid gap-4 rounded-2xl bg-background border border-muted p-4 text-sm">
       <div className="grid gap-2">
         <label htmlFor="full_name" className="font-medium text-foreground">Name</label>
         <Input 
           id="full_name" 
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="bg-background" 
+          placeholder="Your full name"
+          className="bg-muted/50 border-muted focus:border-primary" 
         />
       </div>
       <div className="grid gap-2">
@@ -64,16 +65,16 @@ export function ProfileForm({ fullName, contactNumber }: ProfileFormProps) {
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           placeholder="09XXXXXXXXX"
-          className="bg-background"
+          className="bg-muted/50 border-muted focus:border-primary"
         />
       </div>
       {message && (
-        <p className={`text-sm ${isError ? "text-red-600" : "text-green-600"}`}>
+        <p className={`text-sm font-medium rounded-lg p-2 ${isError ? "text-red-700 bg-red-50" : "text-green-700 bg-green-50"}`}>
           {message}
         </p>
       )}
-      <Button type="submit" disabled={isPending} className="w-full">
-        {isPending ? "Saving..." : "Save name"}
+      <Button type="submit" disabled={isPending} className="w-full mt-2 font-semibold">
+        {isPending ? "Saving..." : "Save"}
       </Button>
     </form>
   );

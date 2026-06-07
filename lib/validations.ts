@@ -18,7 +18,6 @@ export const productSchema = z.object({
   description: z.string().min(5),
   price: z.coerce.number().min(1),
   category_id: z.string().min(1),
-  image_url: z.string().url().or(z.literal("")),
   prep_time_minutes: z.coerce.number().min(1),
   is_available: z.boolean().default(true),
   is_popular: z.boolean().default(false)

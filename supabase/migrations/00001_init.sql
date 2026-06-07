@@ -147,14 +147,14 @@ insert into products (id, category_id, name, slug, description, price, image_url
   ('prod-25', 'cat-snacks', 'Burger w/ Cheese', 'burger-with-cheese', 'Burger with melted cheese.', 50, 'https://images.unsplash.com/photo-1606755962773-d324e2dabd85?auto=format&fit=crop&w=900&q=80', true, true, 8, '[]', 23),
   ('prod-26', 'cat-snacks', 'Hotdog Burger', 'hotdog-burger', 'Burger with hotdog instead of patty.', 50, 'https://images.unsplash.com/photo-1606755962773-d324e2dabd85?auto=format&fit=crop&w=900&q=80', true, true, 7, '[]', 19),
   ('prod-27', 'cat-snacks', 'Fries', 'fries', 'Crispy golden fries with salt.', 25, 'https://images.unsplash.com/photo-1586190936837-c6cea6bab31d?auto=format&fit=crop&w=900&q=80', true, true, 6, '[]', 35),
-  ('prod-28', 'cat-snacks', 'Fish Tofu', 'fish-tofu', 'Crispy fried tofu with fish flavor.', 30, 'https://images.unsplash.com/photo-1546069901-ba9ca3e87f0f?auto=format&fit=crop&w=900&q=80', true, false, 8, '[]', 11),
+  ('prod-28', 'cat-snacks', 'fish tofu', 'fish-tofu', 'Crispy fried tofu with fish flavor.', 30, 'https://images.unsplash.com/photo-1546069901-ba9ca3e87f0f?auto=format&fit=crop&w=900&q=80', true, false, 8, '[]', 11),
   ('prod-29', 'cat-snacks', 'Squidballs', 'squidballs', 'Deep-fried squid balls.', 20, 'https://images.unsplash.com/photo-1574521251149-2c89a40e5b5b?auto=format&fit=crop&w=900&q=80', true, false, 6, '[]', 13),
-  ('prod-30', 'cat-snacks', 'Hotdog on Stick', 'hotdog-on-stick', 'Breaded hotdog on a stick.', 20, 'https://images.unsplash.com/photo-1614432547174-e0fc56d06f9e?auto=format&fit=crop&w=900&q=80', true, false, 5, '[]', 17),
+  ('prod-30', 'cat-snacks', 'hotdog on stick', 'hotdog-on-stick', 'Breaded hotdog on a stick.', 20, 'https://images.unsplash.com/photo-1614432547174-e0fc56d06f9e?auto=format&fit=crop&w=900&q=80', true, false, 5, '[]', 17),
   ('prod-31', 'cat-snacks', 'Siomai Pork', 'siomai-pork', 'Pork siomai dumplings.', 25, 'https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?auto=format&fit=crop&w=900&q=80', true, false, 7, '[]', 14),
   ('prod-32', 'cat-snacks', 'Siomai Beef', 'siomai-beef', 'Beef siomai dumplings.', 25, 'https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?auto=format&fit=crop&w=900&q=80', true, false, 7, '[]', 12),
   ('prod-33', 'cat-snacks', 'Siomai Japanese', 'siomai-japanese', 'Japanese-style siomai dumplings.', 30, 'https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?auto=format&fit=crop&w=900&q=80', true, true, 8, '[]', 16),
   ('prod-34', 'cat-snacks', 'Kikiam', 'kikiam', 'Fried meat roll.', 20, 'https://images.unsplash.com/photo-1574521251149-2c89a40e5b5b?auto=format&fit=crop&w=900&q=80', true, false, 6, '[]', 15),
-  ('prod-35', 'cat-snacks', 'Kwik-Kwik', 'kwik-kwik', 'Fried snack stick.', 20, 'https://images.unsplash.com/photo-1574521251149-2c89a40e5b5b?auto=format&fit=crop&w=900&q=80', true, false, 6, '[]', 13),
+  ('prod-35', 'cat-snacks', 'kwek-kwek', 'kwek-kwek', 'Fried snack stick.', 20, 'https://images.unsplash.com/photo-1574521251149-2c89a40e5b5b?auto=format&fit=crop&w=900&q=80', true, false, 6, '[]', 13),
   ('prod-36', 'cat-snacks', 'Fishball', 'fishball', 'Deep-fried fishball.', 20, 'https://images.unsplash.com/photo-1574521251149-2c89a40e5b5b?auto=format&fit=crop&w=900&q=80', true, false, 5, '[]', 18),
   ('prod-37', 'cat-snacks', 'Dynamite', 'dynamite', 'Spicy fried snack.', 20, 'https://images.unsplash.com/photo-1574521251149-2c89a40e5b5b?auto=format&fit=crop&w=900&q=80', true, false, 6, '[]', 10)
 on conflict (id) do nothing;

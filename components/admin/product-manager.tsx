@@ -20,7 +20,6 @@ export function ProductManager({ products, categories }: { products: Product[]; 
       description: "",
       price: 0,
       category_id: categories[0]?.id ?? "",
-      image_url: "",
       prep_time_minutes: 8,
       is_available: true,
       is_popular: false
@@ -53,7 +52,9 @@ export function ProductManager({ products, categories }: { products: Product[]; 
                 <option key={category.id} value={category.id}>{category.name}</option>
               ))}
             </select>
-            <Input placeholder="Image URL or Supabase Storage URL" {...form.register("image_url")} />
+            <div className="rounded-2xl border border-dashed border-muted p-3 text-sm text-muted-foreground">
+              Product images are loaded from local /products assets based on the product slug.
+            </div>
             <label className="flex items-center gap-2 text-sm font-semibold">
               <input type="checkbox" {...form.register("is_available")} /> Available
             </label>

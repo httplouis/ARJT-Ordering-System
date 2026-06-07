@@ -18,7 +18,14 @@ export function ProductCard({ product, compact = false }: { product: Product; co
     <motion.div layout initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}>
       <Card className="h-full overflow-hidden flex flex-col">
         <div className="relative aspect-[4/3] overflow-hidden bg-muted">
-          <Image src={product.image_url} alt={product.name} fill className="object-cover" sizes="(max-width: 768px) 50vw, 33vw" />
+          {product.image_url?.trim() ? (
+            <img
+              src={product.image_url}
+              alt={product.name}
+              className="h-full w-full object-cover"
+              loading="eager"
+            />
+          ) : null}
           <div className="absolute left-2 top-2 flex gap-2 sm:left-3 sm:top-3">
             {product.is_popular ? <Badge className="bg-primary text-white text-xs">Popular</Badge> : null}
             {!product.is_available ? <Badge className="bg-muted text-muted-foreground text-xs">Unavailable</Badge> : null}

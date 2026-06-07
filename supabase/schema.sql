@@ -203,10 +203,7 @@ insert into public.settings (id) values (1) on conflict (id) do nothing;
 insert into public.categories (name, slug, sort_order) values
   ('Drinks', 'drinks', 1),
   ('Snacks', 'snacks', 2),
-  ('Meals', 'meals', 3),
-  ('Halo-Halo', 'halo-halo', 4),
-  ('Rice Meals', 'rice-meals', 5),
-  ('School Essentials', 'school-essentials', 6)
+  ('Rice Meals', 'rice-meals', 3)
 on conflict (slug) do nothing;
 
 insert into public.products (category_id, name, slug, description, price, image_url, is_popular, prep_time_minutes, options)
@@ -246,14 +243,14 @@ from (values
   ('snacks', 'Burger w/ Cheese', 'burger-cheese', 'Burger with melted cheese.', 50, 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=900&q=80', false, 6, '[]'),
   ('snacks', 'Hotdog Burger', 'hotdog-burger', 'Hotdog served as a burger.', 50, 'https://images.unsplash.com/photo-1606755962773-d324e2dabd85?auto=format&fit=crop&w=900&q=80', false, 5, '[]'),
   ('snacks', 'Fries', 'fries', 'Golden crispy fries.', 25, 'https://images.unsplash.com/photo-1599599810694-f3f1e9f6d8c1?auto=format&fit=crop&w=900&q=80', false, 5, '[]'),
-  ('snacks', 'Fish Tufo', 'fish-tufo', 'Fried fish cake.', 30, 'https://images.unsplash.com/photo-1585238341710-4b4e6f289635?auto=format&fit=crop&w=900&q=80', false, 7, '[]'),
+  ('snacks', 'fish tofu', 'fish-tofu', 'Fried fish cake.', 30, 'https://images.unsplash.com/photo-1585238341710-4b4e6f289635?auto=format&fit=crop&w=900&q=80', false, 7, '[]'),
   ('snacks', 'Squidballs', 'squidballs', 'Fried squid balls.', 20, 'https://images.unsplash.com/photo-1585238341710-4b4e6f289635?auto=format&fit=crop&w=900&q=80', false, 6, '[]'),
-  ('snacks', 'Hotdog on Stick', 'hotdog-stick', 'Hotdog on a stick.', 20, 'https://images.unsplash.com/photo-1606755962773-d324e2dabd85?auto=format&fit=crop&w=900&q=80', false, 4, '[]'),
+  ('snacks', 'hotdog on stick', 'hotdog-on-stick', 'Hotdog on a stick.', 20, 'https://images.unsplash.com/photo-1606755962773-d324e2dabd85?auto=format&fit=crop&w=900&q=80', false, 4, '[]'),
   ('snacks', 'Siomai Pork', 'siomai-pork', 'Pork dumpling.', 25, 'https://images.unsplash.com/photo-1585238341710-4b4e6f289635?auto=format&fit=crop&w=900&q=80', false, 5, '[]'),
   ('snacks', 'Siomai Beef', 'siomai-beef', 'Beef dumpling.', 25, 'https://images.unsplash.com/photo-1585238341710-4b4e6f289635?auto=format&fit=crop&w=900&q=80', false, 5, '[]'),
   ('snacks', 'Siomai Japanese', 'siomai-japanese', 'Japanese style dumpling.', 30, 'https://images.unsplash.com/photo-1585238341710-4b4e6f289635?auto=format&fit=crop&w=900&q=80', false, 5, '[]'),
   ('snacks', 'Kikiam', 'kikiam', 'Filipino style egg roll.', 20, 'https://images.unsplash.com/photo-1585238341710-4b4e6f289635?auto=format&fit=crop&w=900&q=80', false, 5, '[]'),
-  ('snacks', 'Kwik-Kwik', 'kwik-kwik', 'Fried wonton.', 20, 'https://images.unsplash.com/photo-1585238341710-4b4e6f289635?auto=format&fit=crop&w=900&q=80', false, 5, '[]'),
+  ('snacks', 'kwek-kwek', 'kwek-kwek', 'Fried wonton.', 20, 'https://images.unsplash.com/photo-1585238341710-4b4e6f289635?auto=format&fit=crop&w=900&q=80', false, 5, '[]'),
   ('snacks', 'Fishball', 'fishball', 'Fish ball skewer.', 20, 'https://images.unsplash.com/photo-1585238341710-4b4e6f289635?auto=format&fit=crop&w=900&q=80', false, 4, '[]'),
   ('snacks', 'Dynamite', 'dynamite', 'Spicy fried snack.', 20, 'https://images.unsplash.com/photo-1585238341710-4b4e6f289635?auto=format&fit=crop&w=900&q=80', false, 5, '[]')
 ) as p(category_slug, name, slug, description, price, image_url, is_popular, prep_time_minutes, options)

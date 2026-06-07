@@ -408,7 +408,7 @@ export const products: Product[] = [
   {
     id: "prod-28",
     category_id: "cat-snacks",
-    name: "Fish Tofu",
+    name: "fish tofu",
     slug: "fish-tofu",
     description: "Crispy fried tofu with fish flavor.",
     price: 30,
@@ -436,7 +436,7 @@ export const products: Product[] = [
   {
     id: "prod-30",
     category_id: "cat-snacks",
-    name: "Hotdog on Stick",
+    name: "hotdog on stick",
     slug: "hotdog-on-stick",
     description: "Breaded hotdog on a stick.",
     price: 20,
@@ -506,8 +506,8 @@ export const products: Product[] = [
   {
     id: "prod-35",
     category_id: "cat-snacks",
-    name: "Kwik-Kwik",
-    slug: "kwik-kwik",
+    name: "kwek-kwek",
+    slug: "kwek-kwek",
     description: "Fried snack stick.",
     price: 20,
     image_url: img("1574521251149-2c89a40e5b5b"),

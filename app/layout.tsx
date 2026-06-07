@@ -4,7 +4,6 @@ import "./globals.css";
 import { AppProviders } from "@/components/providers/app-providers";
 import { PwaRegister } from "@/components/pwa-register";
 import { Toaster } from "@/components/ui/sonner";
-import MessageWidgetWrapper from "@/components/contact/message-widget-wrapper";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -41,14 +40,12 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
       <body className={`${inter.variable} min-h-screen font-sans antialiased`}>
         <AppProviders>
           {children}
           <Toaster richColors position="top-center" />
           <PwaRegister />
-          {/* Floating message widget for customers (client-only) */}
-          <MessageWidgetWrapper />
         </AppProviders>
       </body>
     </html>

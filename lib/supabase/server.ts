@@ -29,15 +29,10 @@ export async function createClient() {
             // or Server Action — swallow that specific runtime error.
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (cookieStore as any).set(name, value, options);
-          } catch (err) {
-            // Intentionally ignore cookie modification errors here. In
-            // a Route Handler/Server Action the set will succeed; during
-            // rendering it's expected to fail and is non-fatal.
-            // Optionally log in development for visibility.
-            if (process.env.NODE_ENV === "development") {
-              // eslint-disable-next-line no-console
-              console.warn("Supabase cookie set skipped (not in Server Action/Route Handler):", (err as Error).message);
-            }
+          } catch {
+            // Intentionally ignore cookie modification errors here.
+            // This is expected when the code runs during server rendering
+            // outside of a Route Handler or Server Action.
           }
         });
       }

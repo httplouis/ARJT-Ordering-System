@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import type { StoreSettings } from "@/lib/types";
 import { useCart } from "@/lib/store/cart";
 import { cartItemTotal, formatCurrency } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, clearSupabaseSession } from "@/lib/supabase/client";
 import { checkoutSchema, type CheckoutInput } from "@/lib/validations";
 
 export function CartDrawer({ settings }: { settings: StoreSettings }) {
@@ -47,21 +47,45 @@ export function CartDrawer({ settings }: { settings: StoreSettings }) {
     if (!supabase) return;
 
     async function setAccountName(client: NonNullable<ReturnType<typeof createClient>>) {
-      const { data } = await client.auth.getUser();
+      const { data, error } = await client.auth.getUser();
       const user = data.user;
-      if (!user) return;
+      if (error || !user) {
+        await clearSupabaseSession(client);
+        return;
+      }
 
-      const { data: profile } = await client
-      .from("users")
-      .select("full_name, contact_number")
-      .eq("id", user.id)
-      .single();
-    const defaultName = profile?.full_name ?? user.user_metadata?.full_name ?? user.email ?? "";
-    const currentName = form.getValues("customer_name");
-    if (!currentName && defaultName) {
-      form.setValue("customer_name", defaultName);
-    }
-    setProfileContactNumber(profile?.contact_number ?? "");
+      let profile: any;
+      let profileError: any;
+
+      ({ data: profile, error: profileError } = await client
+        .from("users")
+        .select("full_name, contact_number")
+        .eq("id", user.id)
+        .single());
+
+      if (profileError?.code === "42703") {
+        ({ data: profile, error: profileError } = await client
+          .from("users")
+          .select("full_name")
+          .eq("id", user.id)
+          .single());
+      }
+
+      if (profileError) {
+        console.error("Profile fetch error:", profileError);
+        if (profileError.code !== "42703") {
+          await clearSupabaseSession(client);
+          return;
+        }
+      }
+
+      const defaultName = profile?.full_name ?? user.user_metadata?.full_name ?? user.email ?? "";
+      const currentName = form.getValues("customer_name");
+      if (!currentName && defaultName) {
+        form.setValue("customer_name", defaultName);
+      }
+
+      setProfileContactNumber(profile?.contact_number ?? user.email ?? "");
     }
 
     setAccountName(supabase);

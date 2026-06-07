@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { BarChart3, Package, ReceiptText, Settings, Mail, Menu, X } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ const links = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
     <main className="min-h-screen bg-muted/35">
@@ -26,7 +28,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="flex items-center justify-between">
             <Link href="/admin" className="flex items-center gap-3">
               <div className="relative h-10 w-10 overflow-hidden rounded-2xl shadow-sm">
-                <Image src="/ARJT_LOGO.png" alt="Admin logo" fill className="object-contain p-1" />
+                <Image src="/ARJT_LOGO.png" alt="Admin logo" fill sizes="40px" className="object-contain p-1" />
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Admin</p>
@@ -40,14 +42,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
           </div>
           <nav className="mt-8 grid gap-2">
-            {links.map((link) => (
-              <Button key={link.href} asChild variant="ghost" className="h-12 justify-start gap-3 px-3">
-                <Link href={link.href as any}>
-                  <link.icon className="h-5 w-5" />
-                  <span className="text-sm">{link.label}</span>
-                </Link>
-              </Button>
-            ))}
+            {links.map((link) => {
+              const isActive = pathname === link.href || (link.href !== "/admin" && pathname?.startsWith(`${link.href}/`));
+              return (
+                <Button
+                  key={link.href}
+                  asChild
+                  variant="ghost"
+                  className={`h-12 justify-start gap-3 px-3 ${isActive ? "bg-primary/10 text-primary" : ""}`}
+                >
+                  <Link href={link.href as any}>
+                    <link.icon className="h-5 w-5" />
+                    <span className="text-sm">{link.label}</span>
+                  </Link>
+                </Button>
+              );
+            })}
           </nav>
         </div>
 
@@ -60,7 +70,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="relative h-9 w-9 overflow-hidden rounded-2xl shadow-sm">
-              <Image src="/ARJT_LOGO.png" alt="Admin logo" fill className="object-contain p-1" />
+              <Image src="/ARJT_LOGO.png" alt="Admin logo" fill sizes="36px" className="object-contain p-1" />
             </div>
             <Link href="/admin" className="font-black text-primary">Admin</Link>
           </div>
@@ -93,19 +103,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
 
         <nav className="mt-5 space-y-3">
-          {links.map((link) => (
-            <Button
-              key={link.href}
-              asChild
-              variant="ghost"
-              className="h-12 w-full justify-start gap-3 px-3"
-            >
-              <Link href={link.href as any} onClick={() => setMenuOpen(false)}>
-                <link.icon className="h-5 w-5" />
-                <span className="text-sm">{link.label}</span>
-              </Link>
-            </Button>
-          ))}
+          {links.map((link) => {
+            const isActive = pathname === link.href || (link.href !== "/admin" && pathname?.startsWith(`${link.href}/`));
+            return (
+              <Button
+                key={link.href}
+                asChild
+                variant="ghost"
+                className={`h-12 w-full justify-start gap-3 px-3 ${isActive ? "bg-primary/10 text-primary" : ""}`}
+              >
+                <Link href={link.href as any} onClick={() => setMenuOpen(false)}>
+                  <link.icon className="h-5 w-5" />
+                  <span className="text-sm">{link.label}</span>
+                </Link>
+              </Button>
+            );
+          })}
         </nav>
 
         <div className="mt-6 border-t border-muted/20 pt-6 space-y-4">

@@ -9,7 +9,14 @@ export default function LoginPage({ searchParams }: { searchParams: Promise<{ ne
         <div className="w-full max-w-md sm:max-w-lg">
           <div className="mb-6 flex items-center justify-center">
             <div className="relative h-20 w-48 overflow-hidden rounded-3xl border border-white/10 bg-white/10 p-3 shadow-soft backdrop-blur-sm">
-              <Image src="/ARJT_LOGO_nobg.png" alt="ARJT logo" fill className="object-contain" />
+              <Image
+                src="/ARJT_LOGO_nobg.png"
+                alt="ARJT logo"
+                fill
+                sizes="192px"
+                loading="eager"
+                className="object-contain"
+              />
             </div>
           </div>
           <div className="rounded-[2rem] border border-white/10 bg-slate-950/95 p-5 shadow-2xl shadow-slate-950/30 backdrop-blur-sm sm:p-8">
